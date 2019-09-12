@@ -27,8 +27,8 @@ namespace Constants {
     const int pttPollingInterval = 250;
     const int frequencyPollingInterval = 200;
 
-    const QString defaultOnPTTCommand = QLatin1String("pactl set-sink-mute 1 1");
-    const QString defaultOnReturnToRxCommand = QLatin1String("pactl set-sink-mute 1 0");
+    const QString defaultOnPTTCommand = QLatin1String("pactl set-sink-mute 0 1");
+    const QString defaultOnReturnToRxCommand = QLatin1String("pactl set-sink-mute 0 0");
 
     const bool defaultTrackingEnabled = true;
 }
