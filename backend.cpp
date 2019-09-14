@@ -219,10 +219,10 @@ void Backend::setRxAudioMute(bool mute)
     if (!mRxAudioMuteEnabled)
         return;
 
-    if (mute)
-        QProcess::execute("pactl set-sink-mute 1 1");
-    else
-        QProcess::execute("pactl set-sink-mute 1 0");
+    if (mute && !mOnPttCommand.isEmpty())
+        QProcess::execute(mOnPttCommand);
+    else if (!mute && !mOnReturnToRxCommand.isEmpty())
+        QProcess::execute(mOnReturnToRxCommand);
 }
 
 int Backend::rxModel() const
