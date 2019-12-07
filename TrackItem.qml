@@ -55,7 +55,7 @@ Item {
                 font.pixelSize: trackTab.baseFontPointSize * 0.8
                 Layout.fillWidth: true
                 Layout.preferredHeight: width
-                onClicked: backend.incrementOffset(-10)
+                onClicked: backend.incrementOffset(-100)
             }
 
             Button {
@@ -94,7 +94,7 @@ Item {
                 font.pixelSize: trackTab.baseFontPointSize * 0.8
                 Layout.fillWidth: true
                 Layout.preferredHeight: width
-                onClicked: backend.incrementOffset(10)
+                onClicked: backend.incrementOffset(100)
             }
 
             Button {
