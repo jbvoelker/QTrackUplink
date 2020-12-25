@@ -6,7 +6,7 @@ The current frequency from the uplink transmitter determines the new downlink fr
 in the downlink receiver.
 
 ## The Tracking Tab
-![tracking tab](tracking.png)
+![tracking tab](doc/tracking.png)
 
 The tracking tab shows the current transmitter and receiver frequency.
 An optional offset can be applied to the downlink frequency to compensate for frequency errors.
@@ -18,7 +18,7 @@ a second command is executed on PTT release. The default settings mute the audio
 is transmitting.
 
 ## The Configuration Tab
-![config tab](config.png)
+![config tab](doc/config.png)
 
 **TX (Hz)** and **RX (Hz)** specify a frequency pair which is used to calculate the downlink frequency corresponding to the
 current uplink frequency.

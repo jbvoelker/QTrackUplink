@@ -4,7 +4,7 @@
 #include <QQmlContext>
 #include <QFont>
 
-#include <backend.h>
+#include "backend.h"
 
 int main(int argc, char *argv[])
 {    
