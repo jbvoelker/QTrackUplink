@@ -3,9 +3,10 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QString>
 #include <QThread>
 
-#include <rigcontrol.h>
+#include "rigcontrol.h"
 
 class Backend : public QObject
 {
