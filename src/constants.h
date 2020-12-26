@@ -15,6 +15,7 @@ namespace Constants {
     const QString onPttCommandKey = QLatin1String("onPttCommand");
     const QString onReturnToRxCommandKey = QLatin1String("onReturnToRxCommandKey");
     const QString trackingEnabledKey = QLatin1String("trackingEnabled");
+    const QString downlinkIsSourceKey = QLatin1String("downlinkIsSource");
 
     const double defaultOffset = 0.0;
     const double defaultRxStartFrequency = 10489550000.0;
@@ -26,6 +27,7 @@ namespace Constants {
     const bool defaultRxAudioMuteEnabled = false;
     const int pttPollingInterval = 250;
     const int frequencyPollingInterval = 200;
+    const double defaultDownlinkIsSource = false;
 
     const QString defaultOnPTTCommand = QLatin1String("pactl set-sink-mute 0 1");
     const QString defaultOnReturnToRxCommand = QLatin1String("pactl set-sink-mute 0 0");

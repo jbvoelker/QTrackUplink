@@ -21,7 +21,7 @@ Item {
 
         Text {
             text: (backend.txFrequency / 1000).toLocaleString(Qt.locale("en_US"), "f", 3)
-            color: backend.txFrequency === 0 ? "red" : "green"
+            color: backend.txFrequency === 0 || (backend.downlinkIsSource && backend.txFrequency != backend.txFrequencySetpoint) ? "red" : "green"
             font.pixelSize: trackTab.baseFontPointSize * 2
             Layout.alignment: Qt.AlignRight
         }
@@ -34,7 +34,7 @@ Item {
 
         Text {
             text: (backend.rxFrequency / 1000).toLocaleString(Qt.locale("en_US"), "f", 3)
-            color: backend.rxFrequency === 0 || backend.rxFrequency !== backend.rxFrequencySetpoint ? "red" : "green"
+            color: backend.rxFrequency === 0 || (!backend.downlinkIsSource && backend.rxFrequency !== backend.rxFrequencySetpoint) ? "red" : "green"
             font.pixelSize: trackTab.baseFontPointSize * 2
             Layout.alignment: Qt.AlignRight
         }
@@ -112,6 +112,14 @@ Item {
             font.pixelSize: 20
             checked: backend.trackingEnabled
             onCheckedChanged: backend.trackingEnabled = checked
+        }
+
+        CheckBox {
+            text: qsTr("Downlink is source")
+            font.bold: true
+            font.pixelSize: 20
+            checked: backend.downlinkIsSource
+            onCheckedChanged: backend.downlinkIsSource = checked
         }
 
         CheckBox {
