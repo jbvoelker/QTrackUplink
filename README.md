@@ -13,7 +13,7 @@ An optional offset can be applied to compensate for frequency errors.
 
 The **Track** checkbox enables or disables frequency tracking.
 
-The **Downlink is source** checkbox switches the reference frequency source between uplink and downlink.
+The combo box switches the reference frequency source between uplink and downlink.
 Depending on the frequency steps of the uplink transceiver, the exact setpoint frequency will not always be reachable.
 
 The **PTT Mute** checkbox enables polling of the uplink transmitter's PTT status. A command is executed on PTT press,

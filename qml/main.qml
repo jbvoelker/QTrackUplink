@@ -10,7 +10,7 @@ import QtQuick.Layouts 1.3 as LayoutsLegacy
 Window {
     visible: true
     minimumWidth: 500
-    minimumHeight: minimumWidth * 0.62
+    minimumHeight: minimumWidth * 0.47
 
     title: qsTr("QTrackUplink")
 
