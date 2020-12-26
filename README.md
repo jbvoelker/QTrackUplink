@@ -3,15 +3,18 @@
 This application uses [Hamlib](https://hamlib.github.io/) to communicate with the uplink transmitter and the downlink receiver.
 
 The current frequency from the uplink transmitter determines the new downlink frequency which is then set
-in the downlink receiver.
+in the downlink receiver. Tracking the downlink frequency with the uplink transmitter is also possible.
 
 ## The Tracking Tab
 ![tracking tab](doc/tracking.png)
 
 The tracking tab shows the current transmitter and receiver frequency.
-An optional offset can be applied to the downlink frequency to compensate for frequency errors.
+An optional offset can be applied to compensate for frequency errors.
 
-The **Track** checkbox enables or disables uplink frequency tracking.
+The **Track** checkbox enables or disables frequency tracking.
+
+The **Downlink is source** checkbox switches the reference frequency source between uplink and downlink.
+Depending on the frequency steps of the uplink transceiver, the exact setpoint frequency will not always be reachable.
 
 The **PTT Mute** checkbox enables polling of the uplink transmitter's PTT status. A command is executed on PTT press,
 a second command is executed on PTT release. The default settings mute the audio output via pulseaudio while the transmitter
