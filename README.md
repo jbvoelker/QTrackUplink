@@ -29,3 +29,14 @@ The list of radios supported by your Hamlib installation can be queried by execu
 
 The default settings use an FT-817/FT-818 connected to /dev/ttyUSB0 for uplink and gqrx with default remote control settings
 for the  downlink.
+
+## Building the application
+To build QTrackUplink, you need the development packages for Qt >= 5.7 (incl. qtdeclarative) and hamlib.
+
+```
+$ git clone https://github.com/jbvoelker/QTrackUplink.git
+$ cd QTrackUplink
+$ mkdir build && cd build
+$ qmake ..
+$ make
+```
