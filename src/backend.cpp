@@ -14,6 +14,7 @@ Backend::Backend(QObject *parent)
     QObject::connect(this, &Backend::txStartFrequencyChanged, this, &Backend::updateFollowerFrequency);
     QObject::connect(this, &Backend::rxStartFrequencyChanged, this, &Backend::updateFollowerFrequency);
     QObject::connect(this, &Backend::trackingEnabledChanged, this, &Backend::updateFollowerFrequency);
+    QObject::connect(this, &Backend::downlinkIsSourceChanged, this, &Backend::updateFollowerFrequency);
 
     mOffset = mSettings.value(Constants::offsetKey, Constants::defaultOffset).toDouble();
     mRxStartFrequency = mSettings.value(Constants::rxStartFrequencyKey, Constants::defaultRxStartFrequency).toDouble();
@@ -96,19 +97,22 @@ bool Backend::init()
 void Backend::handleTxFrequencyChange(double frequency)
 {
     setTxFrequency(frequency);
-    if (mTrackingEnabled && !mDownlinkIsSource)
+    if (!mDownlinkIsSource)
         updateFollowerFrequency();
 }
 
 void Backend::handleRxFrequencyChange(double frequency)
 {
     setRxFrequency(frequency);
-    if (mTrackingEnabled && mDownlinkIsSource)
+    if (mDownlinkIsSource)
         updateFollowerFrequency();
 }
 
 void Backend::updateFollowerFrequency()
 {
+    if (!mTrackingEnabled)
+        return;
+
     const double currentFrequency = mDownlinkIsSource ? mRxFrequency : mTxFrequency;
 
     if (!qFuzzyIsNull(currentFrequency)) {
@@ -175,6 +179,7 @@ void Backend::setDownlinkIsSource(bool downlinkIsSource)
     if (mDownlinkIsSource != downlinkIsSource) {
         mDownlinkIsSource = downlinkIsSource;
         mSettings.setValue(Constants::downlinkIsSourceKey, downlinkIsSource);
+        setOffset(-mOffset);
         emit downlinkIsSourceChanged(mDownlinkIsSource);
     }
 }
