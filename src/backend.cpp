@@ -153,6 +153,16 @@ void Backend::setOffset(double offset)
 void Backend::cleanup()
 {
     if (mRigThread->isRunning()) {
+        if (mTransmitter) {
+            mTransmitter->deleteLater();
+            mTransmitter = nullptr;
+        }
+
+        if (mReceiver) {
+            mReceiver->deleteLater();
+            mReceiver = nullptr;
+        }
+
         mRigThread->quit();
         mRigThread->wait();
     }

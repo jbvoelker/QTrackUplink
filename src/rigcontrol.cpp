@@ -31,7 +31,7 @@ double RigControl::readFrequency()
         attemptReconnect();
     }
 
-    if (currentFrequency != mFrequency) {
+    if (!qFuzzyCompare(currentFrequency, mFrequency)) {
         mFrequency = currentFrequency;
         emit frequencyChanged(mFrequency);
         qDebug() << "Frequency changed to" << currentFrequency;
