@@ -21,6 +21,7 @@ public:
     Q_PROPERTY(double rxFrequency READ rxFrequency NOTIFY rxFrequencyChanged)
     Q_PROPERTY(double txFrequency READ txFrequency NOTIFY txFrequencyChanged)
     Q_PROPERTY(double rxFrequencySetpoint READ rxFrequencySetpoint NOTIFY rxFrequencySetpointChanged)
+    Q_PROPERTY(double txFrequencySetpoint READ txFrequencySetpoint NOTIFY txFrequencySetpointChanged)
     Q_PROPERTY(double offset READ offset WRITE setOffset NOTIFY offsetChanged)
     Q_PROPERTY(double txStartFrequency READ txStartFrequency WRITE setTxStartFrequency NOTIFY txStartFrequencyChanged)
     Q_PROPERTY(double rxStartFrequency READ rxStartFrequency WRITE setRxStartFrequency NOTIFY rxStartFrequencyChanged)
@@ -32,6 +33,7 @@ public:
     Q_PROPERTY(QString onPttCommand READ onPttCommand WRITE setOnPttCommand NOTIFY onPttCommandChanged)
     Q_PROPERTY(QString onReturnToRxCommand READ onReturnToRxCommand WRITE setOnReturnToRxCommand NOTIFY onReturnToRxCommandChanged)
     Q_PROPERTY(bool trackingEnabled READ trackingEnabled WRITE setTrackingEnabled NOTIFY trackingEnabledChanged)
+    Q_PROPERTY(bool downlinkIsSource READ downlinkIsSource WRITE setDownlinkIsSource NOTIFY downlinkIsSourceChanged)
 
     Q_INVOKABLE bool init();
 
@@ -73,10 +75,17 @@ public:
     bool trackingEnabled() const;
     void setTrackingEnabled(bool trackingEnabled);
 
+    bool downlinkIsSource() const;
+    void setDownlinkIsSource(bool downlinkIsSource);
+
+    double txFrequencySetpoint() const;
+    void setTxFrequencySetpoint(double txFrequencySetpoint);
+
 signals:
     void rxFrequencyChanged(double frequency);
     void txFrequencyChanged(double frequency);
     void rxFrequencySetpointChanged(double frequency);
+    void txFrequencySetpointChanged(double frequency);
     void offsetChanged(double offset);
     void txStartFrequencyChanged(double frequency);
     void rxStartFrequencyChanged(double frequency);
@@ -88,10 +97,12 @@ signals:
     void onPttCommandChanged(QString command);
     void onReturnToRxCommandChanged(QString command);
     void trackingEnabledChanged(bool enabled);
+    void downlinkIsSourceChanged(bool downlinkIsSource);
 
 public slots:
     void handleTxFrequencyChange(double frequency);
-    void updateReceiverFrequency();
+    void handleRxFrequencyChange(double frequency);
+    void updateFollowerFrequency();
 
     void incrementOffset(double increment);
 
@@ -108,20 +119,22 @@ private:
 
     double mRxFrequency = 0;
     double mTxFrequency = 0;
-    double mRxFrequencySetpoint;
+    double mRxFrequencySetpoint = 0;
+    double mTxFrequencySetpoint = 0;
     double mOffset = 0;
 
     double mTxStartFrequency = 432050000;
     double mRxStartFrequency = 10489550000;
 
-    bool mRxAudioMuteEnabled;
+    bool mRxAudioMuteEnabled = false;
     QString mOnPttCommand;
     QString mOnReturnToRxCommand;
 
     bool mTrackingEnabled = false;
+    bool mDownlinkIsSource = false;
 
-    RigControl *mReceiver;
-    RigControl *mTransmitter;
+    RigControl *mReceiver = nullptr;
+    RigControl *mTransmitter = nullptr;
 
     QThread *mRigThread = nullptr;
 

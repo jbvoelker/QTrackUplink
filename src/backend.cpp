@@ -10,10 +10,12 @@ Backend::Backend(QObject *parent)
     : QObject(parent)
     , mRigThread(new QThread(this))
 {
-    QObject::connect(this, &Backend::offsetChanged, this, &Backend::updateReceiverFrequency);
-    QObject::connect(this, &Backend::txStartFrequencyChanged, this, &Backend::updateReceiverFrequency);
-    QObject::connect(this, &Backend::rxStartFrequencyChanged, this, &Backend::updateReceiverFrequency);
-    QObject::connect(this, &Backend::trackingEnabledChanged, this, &Backend::updateReceiverFrequency);
+    QObject::connect(this, &Backend::offsetChanged, this, &Backend::updateFollowerFrequency);
+    QObject::connect(this, &Backend::txStartFrequencyChanged, this, &Backend::updateFollowerFrequency);
+    QObject::connect(this, &Backend::rxStartFrequencyChanged, this, &Backend::updateFollowerFrequency);
+    QObject::connect(this, &Backend::trackingEnabledChanged, this, &Backend::updateFollowerFrequency);
+    QObject::connect(this, &Backend::downlinkIsSourceChanged, this, &Backend::updateFollowerFrequency);
+    QObject::connect(this, &Backend::trackingEnabledChanged, this, &Backend::updateFollowerFrequency);
 
     mOffset = mSettings.value(Constants::offsetKey, Constants::defaultOffset).toDouble();
     mRxStartFrequency = mSettings.value(Constants::rxStartFrequencyKey, Constants::defaultRxStartFrequency).toDouble();
@@ -29,6 +31,7 @@ Backend::Backend(QObject *parent)
     mRxAudioMuteEnabled = mSettings.value(Constants::rxAudioMuteEnabledKey, Constants::defaultRxAudioMuteEnabled).toBool();
 
     mTrackingEnabled = mSettings.value(Constants::trackingEnabledKey, Constants::defaultTrackingEnabled).toBool();
+    mDownlinkIsSource = mSettings.value(Constants::downlinkIsSourceKey, Constants::defaultDownlinkIsSource).toBool();
 }
 
 Backend::~Backend()
@@ -43,7 +46,7 @@ double Backend::rxFrequency() const
 
 void Backend::setRxFrequency(double rxFrequency)
 {
-    if (rxFrequency != mRxFrequency) {
+    if (!qFuzzyCompare(rxFrequency, mRxFrequency)) {
         mRxFrequency = rxFrequency;
         emit rxFrequencyChanged(mRxFrequency);
     }
@@ -83,8 +86,9 @@ bool Backend::init()
     mRigThread->start();
 
     QObject::connect(mTransmitter, &RigControl::frequencyChanged, this, &Backend::handleTxFrequencyChange);
-    QObject::connect(mReceiver, &RigControl::frequencyChanged, this, &Backend::setRxFrequency);
+    QObject::connect(mReceiver, &RigControl::frequencyChanged, this, &Backend::handleRxFrequencyChange);
     QObject::connect(this, &Backend::rxFrequencySetpointChanged, mReceiver, &RigControl::setFrequency);
+    QObject::connect(this, &Backend::txFrequencySetpointChanged, mTransmitter, &RigControl::setFrequency);
 
     QObject::connect(mTransmitter, &RigControl::transmittingChanged, this, &Backend::setRxAudioMute);
 
@@ -94,15 +98,31 @@ bool Backend::init()
 void Backend::handleTxFrequencyChange(double frequency)
 {
     setTxFrequency(frequency);
-    if (mTrackingEnabled)
-        updateReceiverFrequency();
+    if (!mDownlinkIsSource)
+        updateFollowerFrequency();
 }
 
-void Backend::updateReceiverFrequency()
+void Backend::handleRxFrequencyChange(double frequency)
 {
-    if (!qFuzzyIsNull(mTxFrequency)) {
-        const double offsetFromTransponderStart = mTxFrequency - mTxStartFrequency;
-        setRxFrequencySetpoint(offsetFromTransponderStart + mRxStartFrequency + mOffset);
+    setRxFrequency(frequency);
+    if (mDownlinkIsSource)
+        updateFollowerFrequency();
+}
+
+void Backend::updateFollowerFrequency()
+{
+    if (!mTrackingEnabled)
+        return;
+
+    const double currentFrequency = mDownlinkIsSource ? mRxFrequency : mTxFrequency;
+
+    if (!qFuzzyIsNull(currentFrequency)) {
+        const double offsetFromTransponderStart = currentFrequency - (mDownlinkIsSource ? mRxStartFrequency : mTxStartFrequency);
+        const double setpoint = (mDownlinkIsSource ? mTxStartFrequency : mRxStartFrequency) + offsetFromTransponderStart + mOffset;
+        if (mDownlinkIsSource)
+            setTxFrequencySetpoint(setpoint);
+        else
+            setRxFrequencySetpoint(setpoint);
     } else {
         setRxFrequencySetpoint(0);
     }
@@ -110,7 +130,7 @@ void Backend::updateReceiverFrequency()
 
 void Backend::setTxFrequency(double txFrequency)
 {
-    if (txFrequency != mTxFrequency) {
+    if (!qFuzzyCompare(txFrequency, mTxFrequency)) {
         mTxFrequency = txFrequency;
         emit txFrequencyChanged(mTxFrequency);
     }
@@ -123,7 +143,7 @@ double Backend::offset() const
 
 void Backend::setOffset(double offset)
 {
-    if (offset != mOffset) {
+    if (!qFuzzyCompare(offset, mOffset)) {
         mOffset = offset;
         mSettings.setValue(Constants::offsetKey, offset);
         emit offsetChanged(mOffset);
@@ -133,8 +153,45 @@ void Backend::setOffset(double offset)
 void Backend::cleanup()
 {
     if (mRigThread->isRunning()) {
+        if (mTransmitter) {
+            mTransmitter->deleteLater();
+            mTransmitter = nullptr;
+        }
+
+        if (mReceiver) {
+            mReceiver->deleteLater();
+            mReceiver = nullptr;
+        }
+
         mRigThread->quit();
         mRigThread->wait();
+    }
+}
+
+double Backend::txFrequencySetpoint() const
+{
+    return mTxFrequencySetpoint;
+}
+
+void Backend::setTxFrequencySetpoint(double txFrequencySetpoint)
+{
+    mTxFrequencySetpoint = txFrequencySetpoint;
+    emit txFrequencySetpointChanged(mTxFrequencySetpoint);
+}
+
+bool Backend::downlinkIsSource() const
+{
+    return mDownlinkIsSource;
+}
+
+void Backend::setDownlinkIsSource(bool downlinkIsSource)
+{
+    qDebug() << "Set downlink is source to" << downlinkIsSource;
+    if (mDownlinkIsSource != downlinkIsSource) {
+        mDownlinkIsSource = downlinkIsSource;
+        mSettings.setValue(Constants::downlinkIsSourceKey, downlinkIsSource);
+        setOffset(-mOffset);
+        emit downlinkIsSourceChanged(mDownlinkIsSource);
     }
 }
 
@@ -208,7 +265,7 @@ double Backend::rxFrequencySetpoint() const
 
 void Backend::setRxFrequencySetpoint(double txFrequencySetpoint)
 {
-    if (txFrequencySetpoint != mRxFrequencySetpoint) {
+    if (!qFuzzyCompare(txFrequencySetpoint, mRxFrequencySetpoint)) {
         mRxFrequencySetpoint = txFrequencySetpoint;
         emit rxFrequencySetpointChanged(mRxFrequencySetpoint);
     }
@@ -288,7 +345,7 @@ double Backend::rxStartFrequency() const
 
 void Backend::setRxStartFrequency(double rxStartFrequency)
 {
-    if (rxStartFrequency != mRxStartFrequency) {
+    if (!qFuzzyCompare(rxStartFrequency, mRxStartFrequency)) {
         mRxStartFrequency = rxStartFrequency;
         mSettings.setValue(Constants::rxStartFrequencyKey, rxStartFrequency);
         emit rxStartFrequencyChanged(mRxStartFrequency);
@@ -302,7 +359,7 @@ double Backend::txStartFrequency() const
 
 void Backend::setTxStartFrequency(double txStartFrequency)
 {
-    if (txStartFrequency != mTxStartFrequency) {
+    if (!qFuzzyCompare(txStartFrequency, mTxStartFrequency)) {
         mTxStartFrequency = txStartFrequency;
         mSettings.setValue(Constants::txStartFrequencyKey, txStartFrequency);
         emit txStartFrequencyChanged(mTxStartFrequency);
