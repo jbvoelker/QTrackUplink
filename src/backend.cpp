@@ -15,6 +15,7 @@ Backend::Backend(QObject *parent)
     QObject::connect(this, &Backend::rxStartFrequencyChanged, this, &Backend::updateFollowerFrequency);
     QObject::connect(this, &Backend::trackingEnabledChanged, this, &Backend::updateFollowerFrequency);
     QObject::connect(this, &Backend::downlinkIsSourceChanged, this, &Backend::updateFollowerFrequency);
+    QObject::connect(this, &Backend::trackingEnabledChanged, this, &Backend::updateFollowerFrequency);
 
     mOffset = mSettings.value(Constants::offsetKey, Constants::defaultOffset).toDouble();
     mRxStartFrequency = mSettings.value(Constants::rxStartFrequencyKey, Constants::defaultRxStartFrequency).toDouble();
